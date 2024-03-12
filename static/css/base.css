@@ -1,0 +1,59 @@
+
+/*----- background -----*/
+.gradient-background {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.006), rgba(128, 128, 128, 1)); /* Adjust the colors and opacities */
+}
+
+
+/*----- white container -----*/
+.rounded-container {
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255,1); /* 90% opacity white */
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  width: 95%;
+  margin: 0 auto;
+  border: 1px solid rgba(0, 0, 0, 0.1); /* light border */
+}
+
+
+
+
+/*----- Cursor -----*/
+.clickable-row {
+    cursor: pointer;
+}
+
+/*----- NavBar -----*/
+.thin-navbar {
+  height: 30px; /* Adjust the height as needed */
+}
+
+/*----- Logo Container -----*/
+
+.logo-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+.xb-logo {
+  order: 1;
+}
+
+.iac-logo {
+  order: 2;
+}
+
+.subtitle {
+  color: white;
+  padding: 20px;
+  width: calc(100% - 40px); /* Adjust width to leave space for padding */
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-top: -90px; /* Adjust margin-top as needed */
+  text-shadow: 2px 2px 4px #333; /* Dark grey text shadow */
+
+}

@@ -1,0 +1,18 @@
+{% extends 'base/base.html' %}
+
+{% load static %}
+{% block content %}
+
+<div class="rounded-container" style="margin-bottom: 20px;">
+
+    <h1>Selected Spectra</h1>
+
+    
+    <div id="plot-container">
+        {{ plot_div|safe }}
+    </div>
+    
+
+
+</div>
+{% endblock %}

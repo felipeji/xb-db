@@ -1,0 +1,52 @@
+{% extends 'base/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="rounded-container" style="margin-bottom: 20px;">
+
+
+<form id="filter-form" method="post" action="{% url 'selection:process_selection' %}">
+
+<!-- Submit button -->
+<div class="col-md-2 ml-auto mb-3">
+<button type="submit" class="btn btn-success" style="width: 200px;">Select!</button>
+</div>
+
+<!-- Create a table structure -->
+<table id="main-table" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Object</th>
+                <th>slot</th>
+                <th>MJD</th>
+                <th>exptime</th> 
+                <th>min wavelenght</th>
+                <th>max wavelenght</th>
+
+            </tr>
+        </thead>
+        <tbody>
+                {% for spect in spect_objects %}
+                <tr>
+                    <td>{{ spect.spect_id }}</td>
+                    <td>{{ spect.object.pretty_name }}</td>
+                    <td>{{ spect.slot }}</td>
+                    <td>{{ spect.mjd }}</td>
+                    <td>{{ spect.exptime }}</td>
+                    <td>{{ spect.min_wavelenght }}</td>
+                    <td>{{ spect.max_wavelenght }}</td>
+                    
+                </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    
+</form>
+      
+
+</div>     
+
+{% endblock %}

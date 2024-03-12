@@ -1,0 +1,222 @@
+<!doctype html>
+<html>
+<head>
+    {% load static %}
+    <!-- Icons -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.4/font/bootstrap-icons.css"> -->
+
+    <!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+
+
+    <!-- plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+
+
+    <!-- Keep Scroll position -->
+    <script>
+        // Save scroll position before refreshing or navigating away
+        window.addEventListener('beforeunload', function() {
+          sessionStorage.setItem('scrollPosition', window.scrollY || window.pageYOffset);
+        });
+        
+        // Check and restore scroll position on page load
+        document.addEventListener('DOMContentLoaded', function() {
+          var scrollPosition = sessionStorage.getItem('scrollPosition');
+          
+          if (scrollPosition !== null) {
+            window.scrollTo(0, scrollPosition);
+            sessionStorage.removeItem('scrollPosition'); // Optional: Remove the stored position after restoring
+          }
+        });
+        </script>
+
+
+
+        <!-- Table -->
+    
+        <!-- Checkbox table: Include jQuery, DataTables CSS, DataTables JS, and DataTables Checkbox plugin -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/select/1.3.4/js/dataTables.select.min.js"></script>
+        <script src="https://gyrocode.github.io/jquery-datatables-checkboxes/1.2.13/js/dataTables.checkboxes.min.js"></script>
+        </head>
+        <body>
+        
+        <script>
+  
+        $(document).ready(function (){
+            
+        $.fn.dataTable.ext.search.push(function ( settings, searchData, index, rowData, counter ) {
+
+        // assume the row is going to be displayed:
+        var result = true; 
+
+        // loop through the cells we want to check:
+        $('#main-table thead tr:eq(0) th').each( function (colIdx) {
+        var title = $(this).text();
+        if ( $(`#${title}_min`).length ) {
+        
+            // gather all the inputs we will need to check one cell in the current row:
+            var val = parseFloat(searchData[colIdx]) ||  0.0;
+            var min = parseFloat($(`#${title}_min`).val()) || 0;
+            var max = parseFloat($(`#${title}_max`).val()) || Number.MAX_VALUE;
+
+            //console.log( min, val, max ); // just for testing
+
+            if (val < min || val > max) {
+            result = false; // any one failure means the row is filtered out
+            }
+        }
+
+        } );
+        return result;
+
+        });
+
+        // Setup - add a text input to each footer cell
+        $('#main-table thead tr').clone(true).appendTo('#main-table thead');
+        $('#main-table thead tr:eq(1) th').each( function (i) {
+            var title = $(this).text();
+            if(title==='clicks' || title==='MJD' || title==='exptime' || title==='slot' ) {
+            $(this).html(`
+                <div class='d-flex'>
+                <input name=${title}_min id=${title}_min class='' type='number' min='0' placeholder='Min' style='width: 80px;'/>
+                <input name=${title}_max id=${title}_max class='ml-1' type='number' min='0' placeholder='Max' style='width: 80px;'/>
+                </div>
+            `);
+
+            $(`#${title}_min`, this).on('keyup change', function () {
+                minInputValue = parseFloat($(this).val()) || 0;
+                table.draw();
+            });
+
+            $(`#${title}_max`, this).on('keyup change', function () {
+                maxInputValue = parseFloat($(this).val()) || 0;
+                table.draw();
+            });
+
+            } else if (i > 0)  {
+            $(this).html('<input type="text" placeholder="Search '+title+'" />');
+            $('input', this).on('keyup change', function () {
+                if (table.column(i).search() !== this.value) {
+                table.column(i).search(this.value).draw();
+                }
+            });
+            }
+        });
+        
+
+            
+        // Initialize DataTable
+        var table = $('#main-table').DataTable({
+            orderCellsTop: true,
+            paging: false,
+            scrollX: 400,
+            scrollY: 300,
+            searching: true,
+            dom: '<"top"ilp<"clear">>rt<"bottom"<"clear">>',
+
+            language: {
+            info: "_TOTAL_ spectra " , // Customize the information text
+            infoEmpty: "", // Remove empty information text
+            infoFiltered: "" // Remove filtered information text
+            },
+
+
+            columnDefs: [
+                {
+            "targets": [ 5,6 ], // Index of the column you want to hide
+                "visible": false,
+                "searchable": false
+            },
+            
+            {
+                targets: 0,
+                checkboxes: {
+                    selectRow: true
+                },
+            width: '10px' // Set the width of the checkboxes column
+            }],
+            'select': {
+                'style': 'multi'
+            },
+            'order': [[1, 'asc']]
+        });
+        
+
+        $('#filter-form').on('submit', function() { 
+        // Get selected row IDs
+        var rows_selected = table.column(0).checkboxes.selected().toArray();
+
+        // Add the selected row IDs to a hidden input field in the form
+        $('<input />').attr('type', 'hidden')
+                    .attr('name', 'selected_rows')
+                    .attr('value', JSON.stringify(rows_selected))
+                    .appendTo('#filter-form');
+
+        // Continue with the form submission
+        return true;
+        });
+
+
+
+        
+        });
+        </script>
+        
+
+
+
+      </head>
+
+<body class="gradient-background">
+    <!-- Logo -->
+    <div class="logo-container">
+        <!-- XB-DB Logo -->
+        <img class="xb-logo" src="{% static 'images/logo_red.png' %}" width="25%">
+
+        <!-- IAC Logo -->
+        <img class="iac-logo" src="{% static 'images/IAC_logo.png' %}" width="20%">
+
+    </div>
+
+    <!-- Subtitle -->
+    <div class="subtitle">
+        The IAC X-ray Binaries Spectra Database
+    </div>
+
+
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark thin-navbar">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/"> Dashboard </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/data_ingestion/"> Data Ingestion </a>
+            </li>
+        </ul>
+    </nav>
+    <br>
+    
+    <!-- Block from templates -->
+
+    {% block content %}
+    {% endblock %}
+
+    <br>
+    <br>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,136 @@
+{% extends 'base/base.html' %}
+
+{% load static %}
+{% block content %}
+
+{% if success_message %}
+  <div class="alert alert-success" role="alert">
+    {{ success_message }}
+  </div>
+{% endif %}
+
+
+<div class="rounded-container" style="margin-bottom: 20px;">
+  <div class="row">
+
+    <!-- Left Column -->
+    <div class="col-md-4 border-right">
+      <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        <div class="form-group">
+          <h5>Upload Spectra File:</h5>
+          <label for="spectraFile"></label>
+          <input type="file" class="form-control-file" id="spectraFile" name="spectraFile" style="display: none;">
+            <div id="dropArea" style="border: 3px dashed #a2a8ac; border-radius: 10px; padding: 5px; display: flex; align-items: center; justify-content: center; height: 50px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+              <p style="margin: 0;">Drag and drop or click to select a file.</p>
+            </div>
+        </div>
+      </form>
+
+      <br>
+      <!-- List of spectra files Read -->
+      <h5>Uploaded Spectra</h5>
+      <div style="max-height: 80px; overflow-y: scroll; border: 1px solid #a2a8ac; border-radius: 5px;">
+        <ul>
+        {% for file in uploaded_files %}
+          <li>
+            <a href="{{ file.url }}">{{ file.name }}</a>
+            <a href="{% url 'data_ingestion:remove' file.name %}">&times;</a>
+          </li>
+        {% empty %}
+          <li> upload a .mol file </li>
+        {% endfor %}
+      </ul>
+    </div>
+    </div>
+
+    <!-- Middle Column -->
+    <div class="col-md " style="margin-left: 40px;">
+
+      <h5>Sumary</h4>
+        <br>
+        <p style="font-size: 20px;"> Total files read: {{ total_files }} </p>
+        <p style="font-size: 20px;"> Valid spectra: {{ total_spect }} </p>
+        <p style="font-size: 20px;"> Objects detected: {{ total_objects}} </p>
+        <p style="font-size: 20px;"> OBs: {{ total_obs }} </p>
+      </div>
+
+
+    <!-- Right Column -->
+      <div class="col-md-2 ml-auto mb-3">
+
+        <form action="{% url 'data_ingestion:push_button' %}" method="post">
+          {% csrf_token %}
+          <button {% if button_disabled %} disabled {% endif %} type="submit" class="btn btn-success btn-block" > Push! </button>
+      </form>
+        
+
+    </div>
+    
+  </div>
+
+  <br>
+  <br>
+
+  <div class="row">
+    <div class="col-lg-4">
+        <!-- Skymap Plotly graph -->
+        {{ skymap_div|safe }}
+    </div>
+    <div class="col-lg-4">
+        <!-- Wavelength Range Plotly graph -->
+        {{ wl_range_div|safe }}
+    </div>
+    <div class="col-lg-4">
+        <!-- Timeline Plotly graph -->
+        {{ timeline_div|safe }}
+    </div>
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Drop area script -->
+<script>
+  var dropArea = document.getElementById('dropArea');
+  var fileInput = document.getElementById('spectraFile');
+  var uploadForm = document.getElementById('uploadForm');
+
+  dropArea.addEventListener('dragover', function(event) {
+    event.preventDefault();
+    dropArea.style.backgroundColor = '#f2f2f2';
+  });
+
+  dropArea.addEventListener('dragleave', function(event) {
+    event.preventDefault();
+    dropArea.style.backgroundColor = 'transparent';
+  });
+
+  dropArea.addEventListener('drop', function(event) {
+    event.preventDefault();
+    dropArea.style.backgroundColor = 'transparent';
+    fileInput.files = event.dataTransfer.files;
+    uploadForm.submit(); // Automatically submit the form
+  });
+
+  dropArea.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function() {
+    dropArea.style.backgroundColor = 'transparent';
+    uploadForm.submit(); // Automatically submit the form
+  });
+</script>
+
+{% endblock %}
