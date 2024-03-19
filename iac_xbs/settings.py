@@ -88,11 +88,10 @@ DATABASES = {
         'NAME': 'xbdb',
         'USER': 'iac_xbs',
         'PASSWORD': 'binaries',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
-
 
 
 
