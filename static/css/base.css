@@ -1,7 +1,7 @@
 
 /*----- background -----*/
 .gradient-background {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.006), rgba(128, 128, 128, 1)); /* Adjust the colors and opacities */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.006), rgba(128, 128, 128, 1)); 
 }
 
 
