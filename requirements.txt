@@ -1,0 +1,12 @@
+django
+astropy
+psycopg2
+ipython
+plotly
+matplotlib
+numpy
+scipy==1.7.3
+black
+
+# Package from Git repository
+git+https://github.com/WarwickAstro/trm-molly.git

@@ -59,7 +59,6 @@ def upload(request):
         }
 
 
-
     else:
         # Extract all the metadata    
         metadata_df = gen_metadata_df(dotmol_list)
