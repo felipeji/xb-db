@@ -1,2 +1,3 @@
 *.DS_Store
 dotmol/*
+__pycache__
