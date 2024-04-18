@@ -5,16 +5,20 @@
 
 <div class="rounded-container" style="margin-bottom: 20px;">
 
-    <h1>Selected Spectra</h1>
-
+    <h1 style="text-align: center;">Selected Spectra</h1>
+    
 
     <!-- Wavelength -->
     <div id="plot-container">
+        <h3>Wavelength</h3>
         {{ wave_spect_plot|safe }}
     </div>
     
+    <br>
+
     <!-- Velocity -->
     <div id="plot-container">
+        <h3>Velocity</h3>
         {{ vel_spect_plot|safe }}
     </div>
 
