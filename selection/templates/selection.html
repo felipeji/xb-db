@@ -7,11 +7,16 @@
 
     <h1>Selected Spectra</h1>
 
-    
+
+    <!-- Wavelength -->
     <div id="plot-container">
-        {{ plot_div|safe }}
+        {{ wave_spect_plot|safe }}
     </div>
     
+    <!-- Velocity -->
+    <div id="plot-container">
+        {{ vel_spect_plot|safe }}
+    </div>
 
 
 </div>

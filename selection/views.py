@@ -8,6 +8,8 @@ import os
 from data_ingestion.models import Spect, Object
 from django.conf import settings
 from selection.line_list import H, He, sky
+import astropy.units as u
+from astropy.constants import c
 
 
 
@@ -15,7 +17,6 @@ from selection.line_list import H, He, sky
 @csrf_exempt
 def process_selection(request):
     
-
     # Data base dir
 
     if request.method == 'POST':
@@ -27,10 +28,13 @@ def process_selection(request):
 
 
         # Convert the Plotly figure to HTML
-        plot_div = create_plotly_figure(spect_objects)
+        wave_spect_plot, vel_spect_plot  = spect_plot(spect_objects)
+
+
+
 
         # Pass the plot HTML and selected_spects to the template
-        return render(request, 'selection.html', {'plot_div': plot_div })
+        return render(request, 'selection.html', {'wave_spect_plot': wave_spect_plot, 'vel_spect_plot': vel_spect_plot })
 
 
 
@@ -42,48 +46,111 @@ def read_spec(file, slot):
 
 
 
-def create_plotly_figure(spect_objects):
-    """
-    Create a Plotly figure for the given spectra.
+# def spect_plot(spect_objects):
+#     """
+#     Create a Plotly figure for the given spectra.
 
-    Args:
-    - spect_objects: QuerySet containing the selected spectra objects
+#     Args:
+#     - spect_objects: QuerySet containing the selected spectra objects
 
-    Returns:
-    - Plotly figure object
-    """
+#     Returns:
+#     - Plotly figure object
+#     """
 
-    traces = []
+#     traces = []
 
     
-    # Read .mol spectra data for each selected spectrum and store in wave_data and flux_data determining the wavelength range of the whole set
+#     # Read .mol spectra data for each selected spectrum and store in wave_data and flux_data determining the wavelength range of the whole set
+#     w_range = [np.inf, -np.inf]
+
+#     for selected_spect in spect_objects:
+#         file = str(selected_spect.file)
+#         file_path = os.path.join(settings.BASE_DIR, 'dotmol', 'database', file)
+            
+#         slot = selected_spect.slot
+#         wave, flux = read_spec(file_path, slot)
+
+#         # Check max and min
+#         w_range[0] = min(w_range[0],min(wave))
+#         w_range[1] = max(w_range[1],max(wave))
+
+#         name = 'File: ' + file + '    Slot: ' + str(slot)
+
+#         x_axis = 'vel'
+#         x_axis = 'wave'
+
+#         if x_axis is 'wave':
+#             trace = go.Scatter(x=wave, y=flux, mode='lines', line_shape='hvh', name=name)
+
+#         if x_axis is 'vel':
+#             # Velocity space
+#             lambda_0 = 6065
+#             lambda_0 = lambda_0 * u.AA
+#             vel = c * ((wave*u.AA - lambda_0) / lambda_0)
+
+#             trace = go.Scatter(x=vel, y=flux, mode='lines', line_shape='hvh', name=name)
+
+#         traces.append(trace)
+
+
+#     # Create a Plotly layout
+#     layout = go.Layout( xaxis=dict(title=r'Wavelength (Å)'), yaxis=dict(title='Intensity'))
+
+#     # Create a Plotly figure
+#     fig = go.Figure(data=traces, layout=layout)
+
+#     # Call spec_lines function to add vertical line
+#     # List of transitions
+#     transitions = [
+#         [H.balmer, "Balmer",'black'],
+#         [H.paschen, "Pashen", 'black'],
+#         [He.I, "HeI", 'black'],
+#         [He.II, "HeII", 'black'],
+#         [sky.sky, "Sky lines", '#3498DB'],
+
+#     ]
+#     spec_line(fig, w_range,transitions)
+
+
+
+#     return fig.to_html(full_html=False)
+
+def spect_plot(spect_objects):
+    traces_wave = []
+    traces_vel = []
     w_range = [np.inf, -np.inf]
 
     for selected_spect in spect_objects:
         file = str(selected_spect.file)
         file_path = os.path.join(settings.BASE_DIR, 'dotmol', 'database', file)
-            
         slot = selected_spect.slot
         wave, flux = read_spec(file_path, slot)
 
-        # Check max and min
-        w_range[0] = min(w_range[0],min(wave))
-        w_range[1] = max(w_range[1],max(wave))
+        # Check max and min wavelength
+        w_range[0] = min(w_range[0], min(wave))
+        w_range[1] = max(w_range[1], max(wave))
 
+        name = f'File: {file}    Slot: {slot}'
 
-        name = 'File: ' + file + '    Slot: ' + str(slot)
-        trace = go.Scatter(x=wave, y=flux, mode='lines', line_shape='hvh', name=name)
-        
-        traces.append(trace)
+        # Wavelength plot
+        trace_wave = go.Scatter(x=wave, y=flux, mode='lines', line_shape='hvh', name=name)
+        traces_wave.append(trace_wave)
 
+        # Velocity plot
+        lambda_0 = 6065 * u.AA
+        vel = (c * ((wave * u.AA - lambda_0) / lambda_0)).to(u.km/u.s).value
+        trace_vel = go.Scatter(x=vel, y=flux, mode='lines', line_shape='hvh', name=name)
+        traces_vel.append(trace_vel)
 
-    # Create a Plotly layout
-    layout = go.Layout( xaxis=dict(title=r'Wavelength (Å)'), yaxis=dict(title='Intensity'))
+    # Layouts
+    layout_wave = go.Layout(xaxis=dict(title='Wavelength (Å)'), yaxis=dict(title='Intensity'))
+    layout_vel = go.Layout(xaxis=dict(title='Velocity (km/s)'), yaxis=dict(title='Intensity'))
 
-    # Create a Plotly figure
-    fig = go.Figure(data=traces, layout=layout)
+    # Figures
+    fig_wave = go.Figure(data=traces_wave, layout=layout_wave)
+    fig_vel = go.Figure(data=traces_vel, layout=layout_vel)
 
-    # Call spec_lines function to add vertical line
+    # Plot reference lines in wavelenght representation
     # List of transitions
     transitions = [
         [H.balmer, "Balmer",'black'],
@@ -91,13 +158,10 @@ def create_plotly_figure(spect_objects):
         [He.I, "HeI", 'black'],
         [He.II, "HeII", 'black'],
         [sky.sky, "Sky lines", '#3498DB'],
-
     ]
-    spec_line(fig, w_range,transitions)
 
-
-
-    return fig.to_html(full_html=False)
+    spec_line(fig_wave, w_range, transitions) 
+    return fig_wave.to_html(full_html=False), fig_vel.to_html(full_html=False)
 
 
 
@@ -182,4 +246,6 @@ def spec_line(figure, w_range, transitions):
                          )
                      ],
     )
+
+
 
