@@ -3,7 +3,9 @@ import os
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.db import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 
+from modules.plotutils import skymap_gen
 from .models import Spect, Object 
 
 import numpy as np
@@ -64,11 +66,39 @@ def upload(request):
         metadata_df = gen_metadata_df(dotmol_list)
 
         # 1) Sky maps
-        # Unique RA-Dec
-        unique_ra_dec = metadata_df.drop_duplicates(subset=['ra', 'dec'])
+
+        # New ingested sources
+        
+        # Unique RA-Dec 
+        df_ingested = metadata_df.drop_duplicates(subset=['ra', 'dec'])
+
+
+        ra_deg_new = df_ingested['ra'].tolist()
+        dec_deg_new = df_ingested['dec'].tolist()        
+        object_new = df_ingested['object'].tolist()
+        color_new = ['red' for _ in object_new]
+        symbol_new = ['circle-open' for _ in object_new]
+
+
+        # Objects in the database        
+        # Query all objects and extract RA, Dec, and pretty_name
+        objects_data = Object.objects.values_list('ra', 'dec', 'pretty_name')
+
+        ra_deg_db = [obj[0] for obj in objects_data]
+        dec_deg_db = [obj[1] for obj in objects_data]
+        object_db = [obj[2] for obj in objects_data]
+        color_db =  ['black' for _ in object_db]
+        symbol_db = ['star' for _ in object_db]
+
+        ra_deg = ra_deg_new + ra_deg_db
+        dec_deg = dec_deg_new + dec_deg_db
+        object = object_new + object_db
+        symbol = symbol_new + symbol_db
+        color = color_new + color_db
 
         # Generate sky map
-        skymap_div = skymap_gen(unique_ra_dec)
+        skymap_div = skymap_gen(ra_deg, dec_deg, object, symbol, color)
+
 
         # 2) Wavelength ranges
         # Function for clustering by wavelenght
@@ -208,12 +238,18 @@ def push_button(request):
         name = object
         pretty_name = object
 
-        object_instance = Object.objects.create(
-            name=name,
-            pretty_name=pretty_name,
-            ra=ra,
-            dec=dec,
-        )
+        try:
+            # Try to retrieve the object if it already exists
+            object_instance = Object.objects.get(name=name)
+            
+        except ObjectDoesNotExist:
+            # If the object doesn't exist, create a new one
+            object_instance = Object.objects.create(
+                name=name,
+                pretty_name=pretty_name,
+                ra=ra,
+                dec=dec,
+            )
         
         for index, row in metadata_df.iterrows():
 
@@ -367,165 +403,6 @@ def gen_metadata_df(dotmol_list):
     return metadata_df
 
 
-
-def skymap_gen(df):
-
-    coords = df['coord'].tolist()
-    objects = df['object'].tolist()
-
-
-    
-    ra = []
-    dec = []
-    hov = []
-
-    for coord, object in zip(coords,objects):
-
-        # Coordinates in degree
-        ra_deg = coord.ra.wrap_at(180 * u.deg).degree
-        dec_deg = coord.dec.degree
-
-        ra_str = coord.ra.to_string(u.hour, precision=2)
-        dec_str = coord.dec.to_string(u.degree, alwayssign=True, precision=2)
-
-        text = "<b>"+object+"</b><br> (RA,Dec) : ("+ra_str+','+ dec_str+")</br>"
-
-        ra.append(ra_deg)
-        dec.append(dec_deg)
-        hov.append(text)
-
-    
-
-
-
-    # Plot
-
-    grid_ra_x = [-180, -150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150]
-
-    grid_ra_x = [  0,  30,  60,  90, 120, 150, 180, 210, 240, 270, 300, 330]
-
-
-    grid_ra_y = [0] * len(grid_ra_x)
-
-    grid_dec_x = [0] * len(grid_ra_x)
-    grid_dec_y = [-90, -60, -30, 0, 30, 60, 90]
-
-
-
-
-    # Create a line representing the Galactic plane
-    l = np.linspace(0, 360, 1000)
-    b = np.zeros_like(l)
-    galactic_plane = SkyCoord(l=l * u.deg, b=b * u.deg,frame='galactic')
-    icrs_coords = galactic_plane.transform_to('fk5')
-    galactic_plane_ra = icrs_coords.ra.wrap_at(180 * u.deg).degree
-    galactic_plane_dec = icrs_coords.dec.degree
-
-
-
-    # Plot
-    mytrace = [
-        go.Scattergeo(
-            mode='markers',
-            name='Uploaded objects',
-            lon=ra,
-            lat=dec,
-            text=hov,
-            hoverinfo='text',
-            marker=dict(
-                symbol='star',
-                size=12,
-                color='red',
-            )
-        ),
-        # # Plot for already ingested objects TODO 
-        # go.Scattergeo(
-        #     mode='markers',
-        #     name='Mag < 3.5',
-        #     lon=ras2,
-        #     lat=decs2,
-        #     text=hovs2,
-        #     hoverinfo='text',
-        #     marker=dict(
-        #         symbol='star',
-        #         size=12
-        #     )
-        # ),
-        go.Scattergeo(
-            mode='text',
-            lon=grid_ra_x,
-            lat=grid_ra_y,
-            #text=['180°', '150°', '120°', '90°', '60°', '30°', '0°', '330°', '300°', '270°', '240°', '210°'],
-            text = ['0h','2h','4h','6h','8h', '10h', '12h', '14h', '16h', '18h', '20h', '22h'],
-            hoverinfo='none',
-            textfont=dict(
-                size=8,
-                color='#696969'
-            ),
-            showlegend=False
-        ),
-        go.Scattergeo(
-            mode='text',
-            lon=grid_dec_x,
-            lat=grid_dec_y,
-            text=['-90°', '-60°', '-30°', '0°', '+30°', '+60°', '+90°'],
-            hoverinfo='none',
-            textfont=dict(
-                size=8,
-                color='#696969'
-            ),
-            showlegend=False
-        ),
-        # Galactic plane line
-        go.Scattergeo(
-        mode='lines',
-        lon=galactic_plane_ra,
-        lat=galactic_plane_dec,
-        line=dict(color='red', width=2),
-        name='Galactic Plane',
-        visible='legendonly',  # Set to 'legendonly' to hide by default
-
-         ),
-
-    ]
-
-    mylayout = go.Layout(
-        title=dict(text='Object location', y=0.95),
-        legend=dict(x=0, y=0.85),  
-        margin=dict(l=1, r=1, b=0, t=0),  # Adjust margin values as needed
-        autosize=True,
-        geo=dict(
-            projection=dict(
-                type='aitoff'
-            ),
-            lonaxis=dict(
-                showgrid=True,
-                tick0=0,
-                dtick=15,
-                gridcolor='#aaa',
-                gridwidth=1
-            ),
-            lataxis=dict(
-                showgrid=True,
-                tick0=90,
-                dtick=30,
-                gridcolor='#aaa',
-                gridwidth=1
-            ),
-            showcoastlines=False,
-            showland=False,
-            showrivers=False,
-            showlakes=False,
-            showocean=False,
-            showcountries=False,
-            showsubunits=False
-        ),
-        showlegend=True 
-    )
-
-    plot_div = go.Figure(data=mytrace, layout=mylayout).to_html(full_html=False)
-
-    return plot_div
 
 
 

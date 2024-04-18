@@ -3,8 +3,40 @@
 {% load static %}
 
 {% block content %}
-<div class="rounded-container" style="margin-bottom: 20px;">
 
+
+
+
+<div class="rounded-container" style="margin-bottom: 20px; height: 250px; overflow: hidden;">
+
+    <div class="row">
+
+        <div class="col-md " style="margin-left: 40px;">
+
+            <h4> Database Status </h4>
+            <br>
+            <p style="font-size: 20px;">{{ total_spectra }} spectra</p>
+            <p style="font-size: 20px;">{{ total_objects }} sources</p>
+        
+        </div>
+          
+        <div class="col-lg-4">
+        </div>
+
+        <div class="col-lg-4" style="height: 100%;">
+            <!-- Skymap Plotly graph with height set to 100% of the parent container's height -->
+            <div style="height: 100%;">
+                {{ skymap_div|safe }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<div class="rounded-container" style="margin-bottom: 20px;">
 
 <form id="filter-form" method="post" action="{% url 'selection:process_selection' %}">
 
