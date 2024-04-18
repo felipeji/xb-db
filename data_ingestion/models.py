@@ -56,7 +56,7 @@ class Spect(models.Model):
 
     # Set constrain for not ingesting the same spectra twice
     class Meta:
-        unique_together = ('object','instrument', 'jd') 
+        unique_together = ('object','jd') # TODO add instrument
 
 
     def __str__(self):

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.shortcuts import render, redirect
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-
+    
 from modules.plotutils import skymap_gen
 from .models import Spect, Object 
 
@@ -23,13 +23,13 @@ from django.shortcuts import render, redirect
 
 def upload(request):
     if request.method == 'POST':
-        spectra_file = request.FILES['spectraFile']
+        spectra_files = request.FILES.getlist('spectraFile')  # Get a list of uploaded files
         save_directory = os.path.join(settings.BASE_DIR, 'dotmol', 'uploaded')
-        with open(os.path.join(save_directory, spectra_file.name), 'wb+') as destination:
-            for chunk in spectra_file.chunks():
-                destination.write(chunk)    
+        for spectra_file in spectra_files:
+            with open(os.path.join(save_directory, spectra_file.name), 'wb+') as destination:
+                for chunk in spectra_file.chunks():
+                    destination.write(chunk)    
         return redirect('data_ingestion:upload')
-
     uploaded_files = []
 
     save_directory = os.path.join(settings.BASE_DIR, 'dotmol', 'uploaded')
@@ -234,6 +234,7 @@ def push_button(request):
         # RA and Dec should be the same for the same object, so we take the first one
         ra = selected_metadata_df['ra'].iloc[0]
         dec = selected_metadata_df['dec'].iloc[0]
+
         # TODO set proper name and pretty name by user
         name = object
         pretty_name = object
@@ -279,8 +280,10 @@ def push_button(request):
                 
                 # Count the spectra
                 total_spect += 1
+
             except IntegrityError:
                 pass
+            
     # Use Django messages framework to store a success message
     messages.success(request, str(total_spect) + ' spectra successfully ingested in the database!')
 
