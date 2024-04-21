@@ -2,6 +2,15 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 import numpy as np
 import plotly.graph_objects as go
+from django.conf import settings
+from selection.line_list import H, He, sky
+import astropy.units as u
+from astropy.constants import c
+from modules.io import read_molly
+import plotly.graph_objs as go
+import os
+from itertools import cycle
+import plotly.express as px
 
 
 def skymap_gen(
@@ -136,3 +145,286 @@ def skymap_gen(
     plot_div = go.Figure(data=mytrace, layout=mylayout).to_html(full_html=False)
 
     return plot_div
+
+
+
+
+
+def spect_plot(spect_objects, wavelength):
+    traces_wave = []
+    traces_vel = []
+    w_range = [np.inf, -np.inf]
+
+
+
+    for selected_spect in spect_objects:
+        # Get the next color from the cycle
+
+        file = str(selected_spect.file)
+        file_path = os.path.join(settings.BASE_DIR, "dotmol", "database", file)
+        index = selected_spect.index
+        wave, flux = read_molly(file_path, index)
+
+        # Check max and min wavelength
+        w_range[0] = min(w_range[0], min(wave))
+        w_range[1] = max(w_range[1], max(wave))
+
+        name = f"File: {file}    Index: {index}"
+
+        # Wavelength plot
+        trace_wave = go.Scatter(
+            x=wave, y=flux, mode="lines", line_shape="hvh", name=name
+        )
+        traces_wave.append(trace_wave)
+
+        # Velocity plot
+        trace_vel = go.Scatter(
+            x=wave, y=flux, mode="lines", line_shape="hvh", name=name
+        )
+        traces_vel.append(trace_vel)
+
+    # Layouts
+    layout_wave = go.Layout(
+        xaxis=dict(title="Wavelength (Å)"),
+        yaxis=dict(title="Intensity"),
+        showlegend=False, 
+    )
+    layout_vel = go.Layout(
+        xaxis=dict(
+            title="Velocity (km/s)",
+        ),
+        yaxis=dict(title="Intensity"),
+    )
+
+    # Figures
+    fig_wave = go.Figure(data=traces_wave, layout=layout_wave)
+    fig_vel = go.Figure(data=traces_vel, layout=layout_vel)
+
+    # Plot reference lines in wavelenght representation
+    # List of transitions
+    transitions = [
+        [range_filter(H.balmer, w_range), "Balmer", "black"],
+        [range_filter(H.paschen, w_range), "Pashen", "black"],
+        [range_filter(He.I, w_range), "HeI", "black"],
+        [range_filter(He.II, w_range), "HeII", "black"],
+        [range_filter(sky.sky, w_range), "Sky lines", "#3498DB"],
+    ]
+
+
+    fig_vel.update_layout(
+        margin=dict(l=20, r=20, t=0, b=0),
+        width=610,
+        height=406,
+        xaxis=dict(
+            # rangeslider=dict(visible=True),
+        ),
+    )
+
+    fig_wave.update_layout(
+        margin=dict(l=20, r=20, t=100, b=0),
+        width=610,
+        height=500,
+    )
+
+
+    # lambda_buttons(fig_vel, transitions)
+    spec_line(fig_wave, transitions)
+    wave_to_vel(fig_vel, wavelength)
+
+
+    fig_wave.update_traces(showlegend=False)  
+    fig_vel.update_traces(showlegend=False)  
+
+    return fig_wave.to_html(full_html=False), fig_vel.to_html(full_html=False)
+
+
+
+
+def spec_line(figure, transitions):
+    buttons = [dict(label="None", method="relayout", args=["shapes", []])]
+
+    all_shapes = []
+    for transition in transitions:
+        line_list = transition[0]
+        button_label = transition[1]
+        color = transition[2]
+
+        lines = []
+        for line in line_list:
+            label = line[0]
+            wavelength = line[1]
+            lines.append(
+                dict(
+                    type="line",
+                    x0=wavelength,
+                    y0=0,
+                    x1=wavelength,
+                    y1=1,
+                    line=dict(color=color, width=2, dash="dash"),
+                    yref="paper",
+                    label=dict(
+                        text=label,
+                        textposition="end",
+                        textangle="0",
+                        font=dict(size=15, color=color),
+                    ),
+                )
+            )
+
+        button = dict(label=button_label, method="relayout", args=["shapes", lines])
+
+        buttons.append(button)
+        all_shapes.extend(lines)
+
+    buttons.append(
+        dict(
+            label="All",
+            method="relayout",
+            args=["shapes", all_shapes],
+        )
+    )
+
+    figure.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                buttons=buttons,
+                direction="left",  # Align the buttons horizontally
+                x=0.96,  # Position the buttons in the center
+                y=1.25,  # Adjust the vertical position of the buttons
+                showactive=True,
+                bgcolor="#E5E8E8",
+                borderwidth=0,
+                font=dict(size=14, color="#566573", family="verdana"),
+            )
+        ],
+        annotations=[
+                dict(
+                    text="Line marks",
+                    x=-0.1,
+                    xref="paper",
+                    y=1.24,
+                    yref="paper",
+                    align="left",
+                    showarrow=False,
+                    font=dict(size=16, color="#566573", family="verdana"),
+                )
+            ],    
+    )
+
+
+
+# def lambda_buttons(figure, transitions):
+#     buttons = []
+
+#     for transition in transitions:
+#         line_list = transition[0]
+
+#         for line in line_list:
+#             label = line[0]
+#             wavelength = line[1]
+
+#             lambda_0 = wavelength * u.AA
+
+#             # TODO IDK WHy limit to 3 but otherwise it will not work
+#             args = [
+#                 {
+#                     "x": [
+#                         (c * ((trace.x * u.AA - lambda_0) / lambda_0))
+#                         .to(u.km / u.s)
+#                         .value
+#                     ]
+#                 }
+#                 for trace in figure.data[0:3]
+#             ]
+
+#             button = dict(
+#                 label=label + f" - {wavelength} Å", method="update", args=args
+#             )
+#             buttons.append(button)
+
+#         # Add an initial label to the dropdown menu
+#         initial_label = "Select λ₀"
+#         buttons.insert(
+#             0,
+#             dict(
+#                 label=initial_label,
+#                 method="skip",
+#                 args=[
+#                     {
+#                         "visible": False,
+#                     }
+#                 ],
+#             ),
+#         )
+
+#         figure.update_layout(
+#             updatemenus=[
+#                 dict(
+#                     type="dropdown",
+#                     buttons=buttons,
+#                     direction="down",  # Align the buttons horizontally
+#                     x=0.42,  # Position the buttons in the center
+#                     y=1.25,  # Adjust the vertical position of the buttons
+#                     showactive=True,
+#                     bgcolor="#E5E8E8",
+#                     borderwidth=0,
+#                     font=dict(size=14, color="#566573", family="verdana"),
+#                 )
+#             ]
+#         )
+
+
+def range_filter(line_list, w_range):
+    filtered = []
+    for line in line_list:
+        wavelength = line[1]
+        if w_range[0] <= wavelength <= w_range[1]:
+            filtered.append(line)
+    return filtered
+
+
+
+
+
+
+
+def wave_to_vel(figure, wavelength):
+        if wavelength is None:
+            pass
+        else:
+            lambda_0 = float(wavelength) * u.AA
+            for trace in figure.data:
+                trace.x = (c * ((trace.x * u.AA - lambda_0) / lambda_0)).to(u.km / u.s).value
+
+
+    # # Add an initial label to the dropdown menu
+    # initial_label = "Select λ₀"
+    # buttons.insert(
+    #     0,
+    #     dict(
+    #         label=initial_label,
+    #         method="skip",
+    #         args=[
+    #             {
+    #                 "visible": False,
+    #             }
+    #         ],
+    #     ),
+    # )
+
+    # figure.update_layout(
+    #     updatemenus=[
+    #         dict(
+    #             type="dropdown",
+    #             buttons=buttons,
+    #             direction="down",  # Align the buttons horizontally
+    #             x=0.42,  # Position the buttons in the center
+    #             y=1.25,  # Adjust the vertical position of the buttons
+    #             showactive=True,
+    #             bgcolor="#E5E8E8",
+    #             borderwidth=0,
+    #             font=dict(size=14, color="#566573", family="verdana"),
+    #         )
+    #     ]
+    # )

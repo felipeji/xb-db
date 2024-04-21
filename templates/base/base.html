@@ -3,8 +3,8 @@
 <head>
     {% load static %}
     <!-- Icons -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.4/font/bootstrap-icons.css"> -->
 
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.4/font/bootstrap-icons.css"> -->
     <!-- Bootstrap 4 -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     
@@ -18,6 +18,54 @@
     <!-- plotly -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 
+
+
+
+      </head>
+
+    <body class="gradient-background">
+        <!-- Logo -->
+        <div class="logo-container">
+            <!-- XB-DB Logo -->
+            <img class="xb-logo" src="{% static 'images/logo_red.png' %}" width="25%">
+
+            <!-- IAC Logo -->
+            <img class="iac-logo" src="{% static 'images/IAC_logo.png' %}" width="20%">
+
+        </div>
+
+        <!-- Subtitle -->
+        <div class="subtitle">
+            The IAC X-ray Binaries Spectra Database
+        </div>
+
+
+        <!-- Navigation bar -->
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark thin-navbar">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/"> Dashboard </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/data_ingestion/"> Data Ingestion </a>
+                </li>
+            </ul>
+        </nav>
+        <br>
+        
+        <!-- Block from templates -->
+
+        {% block content %}
+        {% endblock %}
+
+        <br>
+        <br>
+
+
+
+
+
+<!-- Scripts -->
 
     <!-- Keep Scroll position -->
     <script>
@@ -36,7 +84,6 @@
           }
         });
         </script>
-
 
 
         <!-- Table -->
@@ -85,7 +132,7 @@
         $('#main-table thead tr').clone(true).appendTo('#main-table thead');
         $('#main-table thead tr:eq(1) th').each( function (i) {
             var title = $(this).text();
-            if(title==='clicks' || title==='MJD' || title==='exptime' || title==='slot' ) {
+            if(title==='clicks' || title==='MJD' || title==='exptime' || title==='index' ) {
             $(this).html(`
                 <div class='d-flex'>
                 <input name=${title}_min id=${title}_min class='' type='number' min='0' placeholder='Min' style='width: 80px;'/>
@@ -117,6 +164,8 @@
             
         // Initialize DataTable
         var table = $('#main-table').DataTable({
+            rowId: 0,
+            'stateSave': true,
             orderCellsTop: true,
             paging: false,
             scrollX: 400,
@@ -140,7 +189,7 @@
             
             {
                 targets: 0,
-                checkboxes: {
+                'checkboxes': {
                     selectRow: true
                 },
             width: '10px' // Set the width of the checkboxes column
@@ -156,66 +205,41 @@
         // Get selected row IDs
         var rows_selected = table.column(0).checkboxes.selected().toArray();
 
+        // Get the value of the wavelength input
+        var wavelength = $("#wavelengthInput").val();
+
+
         // Add the selected row IDs to a hidden input field in the form
         $('<input />').attr('type', 'hidden')
                     .attr('name', 'selected_rows')
                     .attr('value', JSON.stringify(rows_selected))
                     .appendTo('#filter-form');
 
+        $('<input />').attr('type', 'hidden')
+                .attr('name', 'wavelength')
+                .attr('value', wavelength)
+                .appendTo('#filter-form');
+
+    
+
+
         // Continue with the form submission
         return true;
         });
-
-
 
         
         });
         </script>
         
 
+    <!-- Scrits block  -->
+    {% block scripts %}
+
+    {% endblock scripts %}
 
 
-      </head>
 
-<body class="gradient-background">
-    <!-- Logo -->
-    <div class="logo-container">
-        <!-- XB-DB Logo -->
-        <img class="xb-logo" src="{% static 'images/logo_red.png' %}" width="25%">
-
-        <!-- IAC Logo -->
-        <img class="iac-logo" src="{% static 'images/IAC_logo.png' %}" width="20%">
-
-    </div>
-
-    <!-- Subtitle -->
-    <div class="subtitle">
-        The IAC X-ray Binaries Spectra Database
-    </div>
-
-
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm bg-dark navbar-dark thin-navbar">
-        <ul class="navbar-nav">
-            <li class="nav-item active">
-                <a class="nav-link" href="/"> Dashboard </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/data_ingestion/"> Data Ingestion </a>
-            </li>
-        </ul>
-    </nav>
-    <br>
-    
-    <!-- Block from templates -->
-
-    {% block content %}
-    {% endblock %}
-
-    <br>
-    <br>
-
-</body>
+    </body>
 </html>
 
 

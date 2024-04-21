@@ -4,9 +4,6 @@
 
 {% block content %}
 
-
-
-
 <div class="rounded-container" style="margin-bottom: 20px; height: 180px; overflow: hidden;">
 
     <div class="row">
@@ -38,12 +35,6 @@
 
 <div class="rounded-container" style="margin-bottom: 20px;">
 
-<form id="filter-form" method="post" action="{% url 'selection:process_selection' %}">
-
-<!-- Submit button -->
-<div class="col-md-2 ml-auto mb-3">
-<button type="submit" class="btn btn-success" style="width: 200px;">Select!</button>
-</div>
 
 <!-- Create a table structure -->
 <table id="main-table" class="display" cellspacing="0" width="100%">
@@ -51,7 +42,7 @@
             <tr>
                 <th></th>
                 <th>Object</th>
-                <th>slot</th>
+                <th>index</th>
                 <th>MJD</th>
                 <th>exptime</th> 
                 <th>min wavelenght</th>
@@ -64,7 +55,7 @@
                 <tr>
                     <td>{{ spect.spect_id }}</td>
                     <td>{{ spect.object.pretty_name }}</td>
-                    <td>{{ spect.slot }}</td>
+                    <td>{{ spect.index }}</td>
                     <td>{{ spect.mjd }}</td>
                     <td>{{ spect.exptime }}</td>
                     <td>{{ spect.min_wavelenght }}</td>
@@ -76,9 +67,49 @@
         </tbody>
     </table>
     
-</form>
-      
-
 </div>     
+
+
+<div class="rounded-container" >
+
+    <form id="filter-form" method="post" action="{% url 'dashboard' %}">
+        <!-- Submit button -->
+        <div class="col-md-2 ml-auto mb-3">
+        <button type="submit" class="btn btn-success" style="width: 200px;">Select!</button>    
+        </div>
+    </form>
+        
+    <div style="display: flex; align-items: flex-end;">
+
+        <!-- Wavelength -->
+        <div style="display: inline-block;">
+            <h3>Wavelength</h3>
+            {{ wave_spect_plot|safe }}
+        </div>
+        
+        <!-- Velocity -->
+        <div style="display: inline-block;">
+            <h3>Velocity</h3>
+            <div class="input-group mb-5" style="max-width: 200px;">
+                <div class="input-group-prepend">
+                    <div class="input-group-text" style="font-size: smaller;">λ₀ (Å)</div>
+                </div>
+                <input type="text" class="form-control form-control-sm" id="wavelengthInput" placeholder="Enter wavelength">
+            </div>
+                                  
+            {{ vel_spect_plot|safe }}
+        </div>
+
+    </div>
+
+
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+    
 
 {% endblock %}

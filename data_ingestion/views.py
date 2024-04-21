@@ -263,7 +263,7 @@ def push_button(request):
                 header_value = 'long header'  # Your header value
                 jd = row['jd']  # Your jd value
                 hjd = row['hjd']  # Your hjd value
-                slot = row['slot']  # Your hjd value
+                index = row['index']  # Your hjd value
 
                 # Create a Spect
                 Spect.objects.create(
@@ -275,7 +275,7 @@ def push_button(request):
                     header=header_value,
                     jd=jd,
                     hjd=hjd,
-                    slot=slot,
+                    index=index,
                 )
                 
                 # Count the spectra
@@ -346,7 +346,7 @@ def gen_metadata_df(dotmol_list):
 
         # Read spectra
         mol = rmolly(dotmol)
-        for slot, i in enumerate(mol):
+        for index, i in enumerate(mol):
             # Requiered files
             # exptime = models.FloatField()
             # min_wavelenght = models.FloatField()
@@ -355,7 +355,7 @@ def gen_metadata_df(dotmol_list):
             # header = models.TextField()
             # jd = models.FloatField()
             # hjd = models.FloatField()
-            # slot = models.IntergerField()
+            # index = models.IntergerField()
 
 
             object = i.head['Object']
@@ -388,7 +388,7 @@ def gen_metadata_df(dotmol_list):
                 'coord': coord,
                 'site': site,
                 'file': file,
-                'slot': int(slot + 1), # Start in 1 instead of 0
+                'index': int(index), # Start in 1 instead of 0
 
             }
 

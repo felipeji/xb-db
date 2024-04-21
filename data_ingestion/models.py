@@ -37,7 +37,7 @@ class Spect(models.Model):
     jd = models.FloatField()
     hjd = models.FloatField()
     file = models.FileField()
-    slot = models.IntegerField()
+    index = models.IntegerField()
 
     # Optional field
     sn = models.FloatField(null=True, blank=True)
