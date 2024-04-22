@@ -1,8 +1,8 @@
-**Welcome to XB-DB: The Ultimate Spectroscopic Database for X-ray Binaries**
+## XB-DB: The Ultimate Spectroscopic Database for X-ray Binaries
 
 
 
-# Deployment Instructions
+### Deployment Instructions
 
 The application is orchestrated using Docker Compose, which manages two main services: `web` for the web application and `db` for the database backend.
 
