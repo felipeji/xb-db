@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from data_ingestion.models import Spect, Object
 from modules.plotutils import skymap_gen
+from modules.io import select_molly, write_molly
+
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -28,9 +31,7 @@ def dashboard(request):
         # Produce plots
         wave_spect_plot, vel_spect_plot = spect_plot(selected_spect, wavelength)
 
-
     else:
-
         # Produce plots
         wave_spect_plot, vel_spect_plot = spect_plot(None, None)
 
@@ -79,3 +80,41 @@ def dashboard(request):
     }
     return render(request, "dashboard.html", context=context)
 
+
+
+from django.http import JsonResponse
+from django.http import FileResponse
+from wsgiref.util import FileWrapper
+
+def download_selected_spectra(request):
+    if request.method == 'POST':
+        selected_ids = np.int_(json.loads(request.POST["selected_rows"]))
+        selected_spect = Spect.objects.filter(spect_id__in=selected_ids)
+
+
+
+        file_list = selected_spect.values_list('file', flat=True)
+
+        path = './dotmol/database/'
+        file_list = [path+file for file in file_list]
+
+        index_list = selected_spect.values_list('index', flat=True)
+
+        selected_molly = select_molly(file_list, index_list)
+
+        print(request.POST)
+        output = './dotmol/downloads/test.mol'
+        write_molly(selected_molly,output)
+
+
+        # Check if the file exists
+        if os.path.exists(output):
+            try:
+                wrapper = FileWrapper(open(output, 'rb'))
+                response = FileResponse(wrapper, content_type='application/octet-stream')
+                response['Content-Disposition'] = 'attachment; filename="test.mol"'
+                return response
+            except FileNotFoundError:
+                return JsonResponse({'error': 'File not found'}, status=404)
+        else:
+            return JsonResponse({'error': 'File not found'}, status=404)

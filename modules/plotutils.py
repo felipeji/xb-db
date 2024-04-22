@@ -153,32 +153,32 @@ def spect_plot(spect_objects, wavelength):
     w_range = [np.inf, -np.inf]
 
 
+    if spect_objects is not None:
+        for selected_spect in spect_objects:
+            # Get the next color from the cycle
 
-    for selected_spect in spect_objects:
-        # Get the next color from the cycle
+            file = str(selected_spect.file)
+            file_path = os.path.join(settings.BASE_DIR, "dotmol", "database", file)
+            index = selected_spect.index
+            wave, flux = read_molly(file_path, index)
 
-        file = str(selected_spect.file)
-        file_path = os.path.join(settings.BASE_DIR, "dotmol", "database", file)
-        index = selected_spect.index
-        wave, flux = read_molly(file_path, index)
+            # Check max and min wavelength
+            w_range[0] = min(w_range[0], min(wave))
+            w_range[1] = max(w_range[1], max(wave))
 
-        # Check max and min wavelength
-        w_range[0] = min(w_range[0], min(wave))
-        w_range[1] = max(w_range[1], max(wave))
+            name = f"File: {file}    Index: {index}"
 
-        name = f"File: {file}    Index: {index}"
+            # Wavelength plot
+            trace_wave = go.Scatter(
+                x=wave, y=flux, mode="lines", line_shape="hvh", name=name
+            )
+            traces_wave.append(trace_wave)
 
-        # Wavelength plot
-        trace_wave = go.Scatter(
-            x=wave, y=flux, mode="lines", line_shape="hvh", name=name
-        )
-        traces_wave.append(trace_wave)
-
-        # Velocity plot
-        trace_vel = go.Scatter(
-            x=wave, y=flux, mode="lines", line_shape="hvh", name=name
-        )
-        traces_vel.append(trace_vel)
+            # Velocity plot
+            trace_vel = go.Scatter(
+                x=wave, y=flux, mode="lines", line_shape="hvh", name=name
+            )
+            traces_vel.append(trace_vel)
 
     # Layouts
     layout_wave = go.Layout(

@@ -220,13 +220,25 @@
                 .attr('value', wavelength)
                 .appendTo('#filter-form');
 
-    
-
-
         // Continue with the form submission
         return true;
         });
 
+
+
+        $('#download-form').on('submit', function() { 
+        // Get selected row IDs
+        var rows_selected = table.column(0).checkboxes.selected().toArray();
+
+        // Add the selected row IDs to a hidden input field in the form
+        $('<input />').attr('type', 'hidden')
+                    .attr('name', 'selected_rows')
+                    .attr('value', JSON.stringify(rows_selected))
+                    .appendTo('#download-form');
+
+        // Continue with the form submission
+        return true;
+        });
         
         });
         </script>

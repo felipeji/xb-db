@@ -8,12 +8,16 @@ def read_molly(file, index):
     return wave, flux
 
 
-def wmolly(molly_list,output):
+def write_molly(molly_list,output):
     with open(output, 'wb') as fptr:
         for molly in molly_list:
             molly.write(fptr)
 
 
-
+def select_molly(file_list, index_list):
+    selected_list = []
+    for file, index in zip(file_list, index_list):
+        selected_list.append(rmolly(file)[index])
+    return selected_list
 
     
