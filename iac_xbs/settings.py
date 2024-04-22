@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'dashboard',
     'data_ingestion',
-    'selection'
 ]
 
 MIDDLEWARE = [
@@ -56,7 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+    
 ROOT_URLCONF = 'iac_xbs.urls'
 
 TEMPLATES = [

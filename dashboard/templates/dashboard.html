@@ -75,7 +75,7 @@
     <form id="filter-form" method="post" action="{% url 'dashboard' %}">
         <!-- Submit button -->
         <div class="col-md-2 ml-auto mb-3">
-        <button type="submit" class="btn btn-success" style="width: 200px;">Select!</button>    
+        <button type="submit" class="btn btn-success" style="width: 200px;">Update plot</button>    
         </div>
     </form>
         
@@ -94,7 +94,7 @@
                 <div class="input-group-prepend">
                     <div class="input-group-text" style="font-size: smaller;">λ₀ (Å)</div>
                 </div>
-                <input type="text" class="form-control form-control-sm" id="wavelengthInput" placeholder="Enter wavelength">
+                <input type="text" class="form-control form-control-sm" id="wavelengthInput" placeholder="Enter wavelength" >
             </div>
                                   
             {{ vel_spect_plot|safe }}

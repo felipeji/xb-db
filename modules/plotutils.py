@@ -3,15 +3,12 @@ import astropy.units as u
 import numpy as np
 import plotly.graph_objects as go
 from django.conf import settings
-from selection.line_list import H, He, sky
+from modules.line_list import H, He, sky
 import astropy.units as u
 from astropy.constants import c
 from modules.io import read_molly
 import plotly.graph_objs as go
 import os
-from itertools import cycle
-import plotly.express as px
-
 
 def skymap_gen(
     ra,
@@ -314,67 +311,6 @@ def spec_line(figure, transitions):
 
 
 
-# def lambda_buttons(figure, transitions):
-#     buttons = []
-
-#     for transition in transitions:
-#         line_list = transition[0]
-
-#         for line in line_list:
-#             label = line[0]
-#             wavelength = line[1]
-
-#             lambda_0 = wavelength * u.AA
-
-#             # TODO IDK WHy limit to 3 but otherwise it will not work
-#             args = [
-#                 {
-#                     "x": [
-#                         (c * ((trace.x * u.AA - lambda_0) / lambda_0))
-#                         .to(u.km / u.s)
-#                         .value
-#                     ]
-#                 }
-#                 for trace in figure.data[0:3]
-#             ]
-
-#             button = dict(
-#                 label=label + f" - {wavelength} Å", method="update", args=args
-#             )
-#             buttons.append(button)
-
-#         # Add an initial label to the dropdown menu
-#         initial_label = "Select λ₀"
-#         buttons.insert(
-#             0,
-#             dict(
-#                 label=initial_label,
-#                 method="skip",
-#                 args=[
-#                     {
-#                         "visible": False,
-#                     }
-#                 ],
-#             ),
-#         )
-
-#         figure.update_layout(
-#             updatemenus=[
-#                 dict(
-#                     type="dropdown",
-#                     buttons=buttons,
-#                     direction="down",  # Align the buttons horizontally
-#                     x=0.42,  # Position the buttons in the center
-#                     y=1.25,  # Adjust the vertical position of the buttons
-#                     showactive=True,
-#                     bgcolor="#E5E8E8",
-#                     borderwidth=0,
-#                     font=dict(size=14, color="#566573", family="verdana"),
-#                 )
-#             ]
-#         )
-
-
 def range_filter(line_list, w_range):
     filtered = []
     for line in line_list:
@@ -385,17 +321,14 @@ def range_filter(line_list, w_range):
 
 
 
-
-
-
-
 def wave_to_vel(figure, wavelength):
-        if wavelength is None:
-            pass
-        else:
+        try:
             lambda_0 = float(wavelength) * u.AA
-            for trace in figure.data:
-                trace.x = (c * ((trace.x * u.AA - lambda_0) / lambda_0)).to(u.km / u.s).value
+        except:
+            lambda_0 = 6562.8 * u.AA
+
+        for trace in figure.data:
+            trace.x = (c * ((trace.x * u.AA - lambda_0) / lambda_0)).to(u.km / u.s).value
 
 
     # # Add an initial label to the dropdown menu

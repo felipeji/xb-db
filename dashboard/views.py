@@ -32,7 +32,7 @@ def dashboard(request):
     else:
 
         # Produce plots
-        wave_spect_plot, vel_spect_plot = '',''
+        wave_spect_plot, vel_spect_plot = spect_plot(None, None)
 
 
 

@@ -22,7 +22,6 @@ urlpatterns = [
     path('', include('dashboard.urls')),
     path('admin/', admin.site.urls),
     path('', include('data_ingestion.urls')),
-    path('selection/', include('selection.urls')),  # Include the URLs of the 'selection' app
 
 
 ]
