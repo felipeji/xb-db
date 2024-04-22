@@ -210,6 +210,7 @@ def spect_plot(spect_objects, wavelength):
 
     fig_vel.update_layout(
         margin=dict(l=20, r=20, t=10, b=0),
+        modebar=dict(remove=["zoomout", "zoomin",],orientation='v',visible=True,),
         width=610,
         height=410,
         xaxis=dict(
@@ -219,6 +220,7 @@ def spect_plot(spect_objects, wavelength):
 
     fig_wave.update_layout(
         margin=dict(l=20, r=20, t=100, b=0),
+        modebar=dict(remove=["zoomout", "zoomin",],orientation='v'),
         width=610,
         height=500,
     )
