@@ -36,3 +36,6 @@ To deploy the application, follow these steps:
 
 
 Once deployed, the application will be accessible at  `http://localhost:8000`
+
+
+### Have new ideas for future features? Share it in the [issues](https://github.com/felipeji/xb-db/issues/1) check-list.
