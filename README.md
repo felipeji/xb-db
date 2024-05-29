@@ -11,12 +11,13 @@ To deploy the application, follow these steps:
 1. **Build Docker containers:** This command builds the Docker containers defined in the `docker-compose.prod.yml` file. It sets up the environment for running the application.
 
     ```bash
-    docker-compose -f docker-compose.prod.yml up --build -d
+    docker-compose -f docker-compose.yml up --build -d
     ```
 
 2. **Apply database migrations:** After the containers are up and running, apply any pending database migrations using the following command. This ensures that the database schema is up-to-date with the latest changes.
 
     ```bash
+    docker-compose exec web python manage.py makemigrations
     docker-compose exec web python manage.py migrate
     ```
 
