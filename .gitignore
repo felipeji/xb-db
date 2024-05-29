@@ -1,4 +1,8 @@
-dotmol/** 
+dotmol/database/*.mol 
+dotmol/downloads/*.mol 
+dotmol/uploaded/*.mol 
+dotmol/*.mol 
+
 .DS_Store
 __pycache__
 data_ingestion/migrations/** 
